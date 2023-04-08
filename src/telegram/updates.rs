@@ -22,6 +22,7 @@ pub struct Message {
     pub forward_from: Option<User>,
     pub forward_date: Option<i64>,
     pub photo: Option<Vec<Photo>>,
+    pub caption: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

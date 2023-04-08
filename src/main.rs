@@ -40,6 +40,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("\tUpdate Message Text: {:?}", update.message.text.unwrap());
         }
         if update.message.photo.is_some() {
+            if update.message.caption.is_some() {
+                println!(
+                    "\tUpdate Message Caption: {:?}",
+                    update.message.caption.unwrap()
+                );
+            }
             let all_photos = update.message.photo.unwrap_or_default();
 
             let best_photo = all_photos.iter().max_by_key(|photo| photo.width.clone());
