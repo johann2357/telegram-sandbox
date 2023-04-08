@@ -1,11 +1,17 @@
-use dotenv::dotenv;
 use std::env;
+use std::fs;
+use std::io::copy;
+
+use dotenv::dotenv;
 use tokio;
 
 mod telegram;
 
 #[tokio::main]
-async fn main() -> Result<(), telegram::errors::TelegramError> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Iterate over latest telegram messages received by the bot
+    // and download the images if possible
+
     // Load the environment variables from the .env file
     dotenv().ok();
     // Test telegram workflow
@@ -46,7 +52,23 @@ async fn main() -> Result<(), telegram::errors::TelegramError> {
                 );
                 let file_id = photo.file_id.clone();
                 let file = telegram::file::get_file(file_id, &telegram_token).await?;
-                println!("\t\tFile Path: {:?}", file.result.file_path);
+                let file_path = file.result.file_path;
+                println!("\t\tFile Path: {:?}", file_path);
+
+                // Create directory if it does not exist
+                let file_name = file_path.split("/").last().unwrap();
+                let file_path_dir = file_path.replace(file_name, "");
+                let download_dir = format!("downloads/{}", file_path_dir);
+                fs::create_dir_all(&download_dir)?;
+                let download_file_path = download_dir + file_name;
+
+                let mut local_file = fs::File::create(&download_file_path)?;
+                copy(
+                    &mut telegram::file::retrieve_file(file_path, &telegram_token)
+                        .await?
+                        .as_ref(),
+                    &mut local_file,
+                )?;
             }
         }
         println!("");

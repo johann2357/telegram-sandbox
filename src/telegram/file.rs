@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use reqwest;
 use serde::{Deserialize, Serialize};
 
@@ -29,4 +30,13 @@ pub async fn get_file(file_id: String, token: &String) -> Result<GetFile, Telegr
     let file: GetFile = serde_json::from_str(&response_text).map_err(TelegramError::Serde)?;
 
     return Ok(file);
+}
+
+pub async fn retrieve_file(file_path: String, token: &String) -> Result<Bytes, TelegramError> {
+    let url = format!("https://api.telegram.org/file/bot{}/{}", token, file_path,);
+    let response = reqwest::get(url).await.map_err(TelegramError::Reqwest)?;
+
+    let file_bytes: Bytes = response.bytes().await.map_err(TelegramError::Reqwest)?;
+
+    return Ok(file_bytes);
 }
